@@ -4,26 +4,26 @@ export TimeSeries
 
 struct TimeSeries <: AbstractTimeSeries
 
-    ntime::Integer
-    nvalues::Integer
-    time::Vector{Float64}
-    values::Vector{Array{Float64,1}}
+    nt::Integer
+    nv::Integer
+    t::Vector{Float64}
+    u::Vector{Array{Float64,1}}
 
-    function TimeSeries(ntime::Integer, nvalues::Integer)
+    function TimeSeries(nt::Integer, nv::Integer)
 
-        time = zeros(Float64, ntime)
-        values = [zeros(Float64, nvalues) for i = 1:ntime]
+        time = zeros(Float64, nt)
+        values = [zeros(Float64, nv) for i = 1:nt]
 
-        new(ntime, nvalues, time, values)
+        new(nt, nv, time, values)
 
     end
 
     function TimeSeries(time::Array{Float64,1}, values::Array{Array{Float64,1}})
 
-        ntime = length(time)
-        nvalues = size(first(values))[1]
+        nt = length(time)
+        nv = size(first(values))[1]
 
-        new(ntime, nvalues, time, values)
+        new(nt, nv, time, values)
 
     end
 
@@ -32,28 +32,17 @@ end
 import Base: getindex
 
 function getindex(x::TimeSeries, i::Int)
-    getindex.(x.values, i)
+    getindex.(x.u, i)
 end
 
-import Base: -
+import Base:-
 
-function (-)(a::TimeSeries, b::TimeSeries)
+function (-)(a :: TimeSeries, b :: TimeSeries)
 
-    @assert a.nvalues == b.nvalues
-    @assert all(a.time .== b.time)
+    @assert a.nv == b.nv
+    @assert all(a.t .== b.t)
 
-    TimeSeries(a.time, [a[i] - b[i] for i = 1:a.ntime])
-
-end
-
-"""
-    RMSE(a, b)
-
-Compute the Root Mean Square Error between 2 time series.
-"""
-function RMSE(a, b)
-
-    sqrt(mean((vcat(a.values'...) .- vcat(b.values'...)) .^ 2))
+    TimeSeries(a.t, [a[i] - b[i] for i in 1:a.nt])
 
 end
 
@@ -64,17 +53,28 @@ Split time series into random train and test subsets
 """
 function train_test_split(X::TimeSeries, Y::TimeSeries; test_size = 0.5)
 
-    time = X.time
+    time = X.t
     T = length(time)
     T_test = Int64(T * test_size)
     T_train = T - T_test
 
-    X_train = TimeSeries(time[1:T_train], X.values[:, 1:T_train-1])
-    Y_train = TimeSeries(time[2:end], Y.values[:, 1:T_train-1])
+    X_train = TimeSeries(time[1:T_train], X.u[:, 1:T_train-1])
+    Y_train = TimeSeries(time[2:end], Y.u[:, 1:T_train-1])
 
-    X_test = TimeSeries(time, X.values[:, T_train:end])
-    Y_test = TimeSeries(time[2:end], Y.values[:, T_train:end-1])
+    X_test = TimeSeries(time, X.u[:, T_train:end])
+    Y_test = TimeSeries(time[2:end], Y.u[:, T_train:end-1])
 
     X_train, Y_train, X_test, Y_test
+
+end
+
+"""
+    RMSE(a, b)
+
+Compute the Root Mean Square Error between 2 time series.
+"""
+function RMSE(a, b)
+
+    sqrt(mean((vcat(a.u'...) .- vcat(b.u'...)) .^ 2))
 
 end
