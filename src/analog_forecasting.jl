@@ -32,7 +32,7 @@ struct AnalogForecasting <: AbstractForecasting
         leafsize = 50,
     )
 
-        neighborhood = trues((xt.nvalues, xt.nvalues)) # global analogs
+        neighborhood = trues((xt.nv, xt.nv)) # global analogs
 
         kdt = KDTree(catalog.analogs, leafsize = leafsize)
 
@@ -75,8 +75,8 @@ function (forecasting::AnalogForecasting)(x::Array{Float64,2})
 
     # parameter of normalization for the kernels
     λ = median(Iterators.flatten(dist_knn))
-    @assert λ > 0.0
-    weights = [ones(forecasting.k) for i = 1:np]
+    @assert λ > 0.
+    weights = [ ones(forecasting.k) for i in 1:np]
 
     while condition
 
@@ -89,16 +89,16 @@ function (forecasting::AnalogForecasting)(x::Array{Float64,2})
         end
 
         # compute weights
-        for ip = 1:np
-            for k = 1:forecasting.k
+        for ip in 1:np
+            for k in 1:forecasting.k
                 weights[ip][k] = exp(-dist_knn[ip][k]^2 / λ^2)
             end
             s = sum(weights[ip])
-            for k = 1:forecasting.k
+            for k in 1:forecasting.k
                 weights[ip][k] /= s
             end
 
-            if any(isnan.(weights[ip]))
+            if any(isnan.(weights[ip])) 
                 @show ip
                 @show λ
                 @show dist_knn[ip]
@@ -123,23 +123,20 @@ function (forecasting::AnalogForecasting)(x::Array{Float64,2})
                 # weighted mean and covariance
                 xf_mean[ivar, ip] = sum(xf_tmp[ivar, :] .* weights[ip]', dims = 2)
                 Exf = xf_tmp[ivar, :] .- xf_mean[ivar, ip]
-                cov_xf = Symmetric(
-                    1.0 ./ (1.0 .- sum(weights[ip] .^ 2)) .* (Exf .* weights[ip]') * Exf',
-                )
+                cov_xf = Symmetric(1.0 ./ (1.0 .- sum(weights[ip] .^ 2)) .*
+                                   (Exf .* weights[ip]') * Exf')
 
             elseif forecasting.regression == :increment # method "locally-incremental"
                 # compute the analog forecasts
-                xf_tmp[ivar, :] .= (
-                    x[ivar, ip] .+ forecasting.catalog.successors[ivar, index_knn[ip]] .-
-                    forecasting.catalog.analogs[ivar, index_knn[ip]]
-                )
+                xf_tmp[ivar, :] .= (x[ivar, ip] .+
+                                    forecasting.catalog.successors[ivar, index_knn[ip]] .-
+                                    forecasting.catalog.analogs[ivar, index_knn[ip]])
 
                 # weighted mean and covariance
                 xf_mean[ivar, ip] = sum(xf_tmp[ivar, :] .* weights[ip]', dims = 2)
                 Exf = xf_tmp[ivar, :] .- xf_mean[ivar, ip]
-                cov_xf = Symmetric(
-                    1.0 ./ (1.0 .- sum(weights[ip] .^ 2)) .* (Exf .* weights[ip]') * Exf',
-                )
+                cov_xf = Symmetric(1.0 ./ (1.0 .- sum(weights[ip] .^ 2)) .*
+                                   (Exf .* weights[ip]') * Exf')
 
             elseif forecasting.regression == :local_linear
 
@@ -163,10 +160,8 @@ function (forecasting::AnalogForecasting)(x::Array{Float64,2})
                     # weighted mean and covariance
                     xf_mean[ivar, ip] = sum(xf_tmp[ivar, :] .* weights[ip]', dims = 2)
                     Exf = xf_tmp[ivar, :] .- xf_mean[ivar, ip]
-                    cov_xf = Symmetric(
-                        1.0 ./ (1.0 .- sum(weights[ip] .^ 2)) .* (Exf .* weights[ip]') *
-                        Exf',
-                    )
+                    cov_xf = Symmetric(1.0 ./ (1.0 .- sum(weights[ip] .^ 2)) .*
+                                       (Exf .* weights[ip]') * Exf')
                 else
 
                     # constant weights for local linear
@@ -191,7 +186,7 @@ function (forecasting::AnalogForecasting)(x::Array{Float64,2})
                 d = MvNormal(xf_mean[ivar, ip], cov_xf)
                 xf[ivar, ip] .= rand!(d, xf[ivar, ip])
 
-                # Multinomial sampling
+            # Multinomial sampling
             elseif forecasting.sampling == :multinomial
 
                 # random sampling from the multinomial distribution 
