@@ -1,4 +1,4 @@
-import DifferentialEquations: ODEProblem, EnsembleProblem, solve, SRIW1
+import DifferentialEquations: ODEProblem, EnsembleProblem, solve
 
 """ 
 
@@ -12,15 +12,7 @@ function (ssm::StateSpaceModel)(x::Array{Float64,2})
     tspan = (0.0, ssm.dt_integration)
     u0 = zeros(Float64, nv)
 
-    function σ( du, u, p, t)
-
-        for i in eachindex(du)
-            du[i] = ssm.sigma2_obs
-        end
-
-    end
-
-    prob = SDEProblem(ssm.model, σ, u0, tspan, p)
+    prob = ODEProblem(ssm.model, u0, tspan, p)
 
     function prob_func(prob, i, repeat)
         prob.u0 .= x[:, i]
@@ -29,12 +21,10 @@ function (ssm::StateSpaceModel)(x::Array{Float64,2})
 
     monte_prob = EnsembleProblem(prob, prob_func = prob_func)
 
-    sim = solve(monte_prob, SRIW1(); trajectories = np, save_everystep = false)
+	sim = solve(monte_prob; trajectories = np, save_everystep = false)
 
-    sol = [last(sim[i].u) for i = 1:np]
+	xf = hcat([last(sim[i].u) for i = 1:np]...)
 
-    xf = hcat(sol...)
-
-    return xf, xf
+	return xf, copy(xf)
 
 end
