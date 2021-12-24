@@ -55,7 +55,7 @@ sampling   = :gaussian
 
     f  = AnalogForecasting( 100, xt, catalog, regression = regression, sampling = sampling)
     DA = DataAssimilation( f, xt, ssm.sigma2_obs )
-    @time x̂ = forecast( DA, yo, EnKS(500), progress = true)
+    @time x̂ = forecast( DA, yo, AnEnKS(500), progress = true)
     rmse = RMSE(xt,x̂)
     println("RMSE(global analog  DA) = $rmse ")
 
@@ -67,7 +67,7 @@ end
 @testset "Global analog with classic computation " begin
 
     DA = DataAssimilation( ssm, xt )
-    @time x̂  = forecast(DA, yo, EnKS(500), progress = true);
+    @time x̂  = forecast(DA, yo, AnEnKS(500), progress = true);
     rmse = RMSE(xt,x̂)
     println("RMSE(global classic DA) = $rmse ")
     
@@ -79,7 +79,7 @@ end
 
     f  = AnalogForecasting( 100, xt, catalog, neighborhood, regression, sampling)
     DA = DataAssimilation( f, xt, ssm.sigma2_obs )
-    @time x̂ = forecast( DA, yo, EnKS(500), progress = true)
+    @time x̂ = forecast( DA, yo, AnEnKS(500), progress = true)
     rmse = RMSE(xt,x̂)
     println("RMSE(local analog DA) = $rmse ")
 

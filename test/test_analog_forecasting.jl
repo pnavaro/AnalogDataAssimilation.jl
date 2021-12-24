@@ -46,7 +46,7 @@ for regression in [:local_linear, :locally_constant, :increment]
         f  = AnalogForecasting( 50, xt, catalog; 
                                 regression = regression,
                                 sampling   = sampling )
-        for method in [EnKS(100), EnKF(100), PF(100)]
+        for method in [AnEnKS(100), AnEnKF(100), AnPF(100)]
             println(" $regression, $sampling, $method ")
             DA = DataAssimilation( f, xt, ssm.sigma2_obs )
             time = @elapsed x̂  = forecast(DA, yo, method)

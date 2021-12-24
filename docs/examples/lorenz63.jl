@@ -29,10 +29,10 @@
 # be available. Based on this catalog, the Analog Data Assimilation
 # (AnDA) is introduced by combining machine learning with the analog
 # method (or nearest neighbor search) and stochastic assimilation
-# techniques including Ensemble Kalman Filter and Smoother (EnKF,
-# EnKS) and Particle Filter (PF). We test the accuracy of the technic
+# techniques including Ensemble Kalman Filter and Smoother (AnEnKF,
+# AnEnKS) and Particle Filter (AnPF). We test the accuracy of the technic
 # on different chaotic dynamical models, the Lorenz-63 and Lorenz-96
-# systems.  # # This Julia program is dervied from the Python library
+# systems.  # # This Julia program is derived from the Python library
 # is attached to the following publication: # Lguensat, R., Tandeo,
 # P., Ailliot, P., Pulido, M., & Fablet, R. (2017). The Analog Data
 # Assimilation. *Monthly Weather Review*, 145(10), 4093-4107.  # If

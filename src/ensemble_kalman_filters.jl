@@ -1,11 +1,11 @@
-export EnKF
+export AnEnKF
 
 """
     EnKF( np )
 
 Ensemble Kalman Filters
 """
-struct EnKF <: MonteCarloMethod
+struct AnEnKF <: MonteCarloMethod
 
     np::Int64
 
@@ -23,7 +23,7 @@ end
 Apply stochastic and sequential data assimilation technics using 
 model forecasting or analog forecasting. 
 """
-function forecast(da::DataAssimilation, yo::TimeSeries, mc::EnKF; progress = true)
+function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnEnKF; progress = true)
 
     # dimensions
     nt = yo.nt        # number of observations
@@ -71,10 +71,10 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::EnKF; progress = tru
             σ = da.R[ivar_obs, ivar_obs]
             eps = rand(MvNormal(μ, σ), np)
             yf = da.H[ivar_obs, :] * xf
-            SIGMA = (da.H[ivar_obs, :] * pf[k]) * da.H[ivar_obs, :]'
-            SIGMA .+= da.R[ivar_obs, ivar_obs]
-            SIGMA_INV = inv(SIGMA)
-            K = (pf[k] * da.H[ivar_obs, :]') * SIGMA_INV
+            Σ = (da.H[ivar_obs, :] * pf[k]) * da.H[ivar_obs, :]'
+            Σ .+= da.R[ivar_obs, ivar_obs]
+			invΣ = inv(Σ)
+            K = (pf[k] * da.H[ivar_obs, :]') * invΣ
             d = yo.u[k][ivar_obs] .- yf .+ eps
             part[k] .= xf .+ K * d
             # compute likelihood

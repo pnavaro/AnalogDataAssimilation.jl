@@ -1,6 +1,6 @@
-export EnKS
+export AnEnKS
 
-struct EnKS
+struct AnEnKS
 
     np::Int64
 
@@ -12,7 +12,7 @@ end
 Apply stochastic and sequential data assimilation technics using 
 model forecasting or analog forecasting. 
 """
-function forecast(da::DataAssimilation, yo::TimeSeries, mc::EnKS; progress = true)
+function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnEnKS; progress = true)
 
     # dimensions
     nt = yo.nt        # number of observations

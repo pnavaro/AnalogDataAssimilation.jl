@@ -1,19 +1,19 @@
-export PF
+export AnPF
 
-struct PF <: MonteCarloMethod
+struct AnPF <: MonteCarloMethod
 
     np::Int64
 
 end
 
 """ 
-    data_assimilation( yo, da, PF(100) )
+    data_assimilation( yo, da, AnPF(100) )
 
 Apply particle filters data assimilation technics using 
 model forecasting or analog forecasting. 
 
 """
-function forecast(da::DataAssimilation, yo::TimeSeries, mc::PF; progress = true)
+function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnPF; progress = true)
 
     # dimensions
     nt = yo.nt        # number of observations

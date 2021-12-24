@@ -1,6 +1,5 @@
 @testset " Classic model forecasting " begin
 
-import AnalogDataAssimilation: normalise!, sample_discrete
 import DifferentialEquations: ODEProblem, solve, Tsit5
 
 σ = 10.0
@@ -23,7 +22,7 @@ ssm = StateSpaceModel( lorenz63,
                        nb_loop_train, nb_loop_test,
                        sigma2_catalog, sigma2_obs )
 
-# compute u0 to be in the attractor space
+# compute u0 at time = 5 to be in the attractor space
 
 u0    = [8.0;0.0;30.0]
 tspan = (0.0,5.0)
@@ -34,7 +33,7 @@ xt, yo, catalog = generate_data( ssm, u0 )
 
 DA = DataAssimilation( ssm, xt )
 
-x̂ = forecast( DA, yo, EnKS(100))
+x̂ = forecast( DA, yo, AnEnKS(100))
 
 rmse = RMSE(xt, x̂)
 
