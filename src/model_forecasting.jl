@@ -12,7 +12,7 @@ function (ssm::StateSpaceModel)(x::Array{Float64,2})
     tspan = (0.0, ssm.dt_integration)
     u0 = zeros(Float64, nv)
 
-    function σ(du, u, p, t)
+    function σ( du, u, p, t)
 
         for i in eachindex(du)
             du[i] = ssm.sigma2_obs
