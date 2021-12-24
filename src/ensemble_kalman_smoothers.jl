@@ -15,9 +15,9 @@ model forecasting or analog forecasting.
 function forecast(da::DataAssimilation, yo::TimeSeries, mc::EnKS; progress = true)
 
     # dimensions
-    nt = yo.ntime    # number of observations
-    np = mc.np       # number of particles
-    nv = yo.nvalues  # number of variables (dimensions of problem)
+    nt = yo.nt        # number of observations
+    np = mc.np        # number of particles
+    nv = yo.nv        # number of variables (dimensions of problem)
 
     # initialization
     x̂ = TimeSeries(nt, nv)
@@ -56,7 +56,7 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::EnKS; progress = tru
         pf[k] .= (ef * ef') ./ (np - 1)
 
         # analysis step (correct forecasts with observations)          
-        ivar_obs = findall(.!isnan.(yo.values[k]))
+        ivar_obs = findall(.!isnan.(yo.u[k]))
         n = length(ivar_obs)
 
         if n > 0
@@ -71,7 +71,7 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::EnKS; progress = tru
             SIGMA_INV = inv(SIGMA)
 
             K = (pf[k] * da.H[ivar_obs, :]') * SIGMA_INV
-            d = yo.values[k][ivar_obs] .- yf .+ eps
+            d = yo.u[k][ivar_obs] .- yf .+ eps
             part[k] .= xf .+ K * d
 
         else
@@ -80,7 +80,7 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::EnKS; progress = tru
 
         end
 
-        x̂.values[k] .= vec(sum(part[k] ./ np, dims = 2))
+        x̂.u[k] .= vec(sum(part[k] ./ np, dims = 2))
 
     end
 
@@ -103,7 +103,7 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::EnKS; progress = tru
             Ks .= ((tmp1 * tmp2') * pinv(pf[k+1], rtol = 1e-4)) ./ (np - 1)
             part[k] .+= Ks * (part[k+1] .- xf_part[k+1])
         end
-        x̂.values[k] .= vec(sum(part[k] ./ np, dims = 2))
+        x̂.u[k] .= vec(sum(part[k] ./ np, dims = 2))
 
     end
 
