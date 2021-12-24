@@ -23,9 +23,9 @@ struct DataAssimilation
 
     function DataAssimilation(m::AbstractForecasting, xt::TimeSeries, sigma2::Float64)
 
-        xb = xt.values[1]
-        B = 0.1 * Matrix(I, xt.nvalues, xt.nvalues)
-        H = Matrix(I, xt.nvalues, xt.nvalues)
+        xb = xt.u[1]
+        B = 0.1 * Matrix(I, xt.nv, xt.nv)
+        H = Matrix(I, xt.nv, xt.nv)
         R = sigma2 .* H
 
         new(xb, B, H, R, m)
@@ -34,9 +34,9 @@ struct DataAssimilation
 
     function DataAssimilation(m::StateSpaceModel, xt::TimeSeries)
 
-        xb = xt.values[1]
-        B = 0.1 * Matrix(I, xt.nvalues, xt.nvalues)
-        H = Matrix(I, xt.nvalues, xt.nvalues)
+        xb = xt.u[1]
+        B = 0.1 * Matrix(I, xt.nv, xt.nv)
+        H = Matrix(I, xt.nv, xt.nv)
         R = m.sigma2_obs .* H
 
         new(xb, B, H, R, m)
