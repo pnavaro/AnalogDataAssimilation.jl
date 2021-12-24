@@ -31,7 +31,7 @@ function generate_data(ssm::StateSpaceModel, u0::Vector{Float64}, seed = 42)
 
     tspan = (0.0, ssm.nb_loop_test)
 
-    function σ(du, u, p, t)
+    function σ( du, u, p, t)
 
         for i in eachindex(du)
             du[i] = ssm.sigma2_obs
@@ -41,23 +41,23 @@ function generate_data(ssm::StateSpaceModel, u0::Vector{Float64}, seed = 42)
 
     prob = SDEProblem(ssm.model, σ, u0, tspan, ssm.params)
 
-    # generate true state (xt)
+    # generSate true state (xt)
     sol = solve(prob, saveat = ssm.dt_states * ssm.dt_integration)
     xt = TimeSeries(sol.t, sol.u)
 
     # generate  partial/noisy observations (yo)
-    nt = xt.ntime
-    nv = xt.nvalues
+    nt = xt.nt
+    nv = xt.nv
 
-    yo = TimeSeries(xt.time, xt.values .* NaN)
+    yo = TimeSeries(xt.t, xt.u .* NaN)
     step = ssm.dt_obs ÷ ssm.dt_states
-    nt = length(xt.time)
+    nt = length(xt.t)
 
     d = MvNormal(ssm.sigma2_obs .* Matrix(I, nv, nv))
     ε = rand(d, nt)
     for j = 1:step:nt
         for i in ssm.var_obs
-            yo.values[j][i] = xt.values[j][i] + ε[i, j]
+            yo.u[j][i] = xt.u[j][i] + ε[i, j]
         end
     end
 
@@ -73,3 +73,4 @@ function generate_data(ssm::StateSpaceModel, u0::Vector{Float64}, seed = 42)
     xt, yo, Catalog(hcat(catalog_tmp...), ssm)
 
 end
+
