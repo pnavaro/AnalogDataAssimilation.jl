@@ -39,9 +39,6 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnEnKS; progress = t
     end
 
     sampler1 = MvNormal(da.xb, da.B)
-    μ = zeros(Float64, n)
-    σ = da.R[ivar_obs, ivar_obs]
-    sampler2 = MvNormal(μ, σ)
 
     for k = 1:nt
         if progress
@@ -68,6 +65,9 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnEnKS; progress = t
 
         if n > 0
 
+            μ = zeros(Float64, n)
+            σ = da.R[ivar_obs, ivar_obs]
+            sampler2 = MvNormal(μ, σ)
             eps = rand(rng, sampler2, np)
             yf = da.H[ivar_obs, :] * xf
 
