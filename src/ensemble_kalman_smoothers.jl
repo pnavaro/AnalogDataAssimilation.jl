@@ -32,9 +32,16 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnEnKS; progress = t
     ef = similar(xf)
     Ks = zeros(Float64, (nv, nv))
 
+	rng = MersenneTwister(1234)
+
     if progress
         p = Progress(nt)
     end
+
+    sampler1 = MvNormal(da.xb, da.B)
+    μ = zeros(Float64, n)
+    σ = da.R[ivar_obs, ivar_obs]
+    sampler2 = MvNormal(μ, σ)
 
     for k = 1:nt
         if progress
@@ -43,17 +50,17 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnEnKS; progress = t
 
         # update step (compute forecasts)            
         if k == 1
-            xf .= rand(MvNormal(da.xb, da.B), np)
+            rand!(rng, sampler1, xf)
         else
             xf, xf_mean = da.m(part[k-1])
             m_xa_part_tmp .= xf_mean
             m_xa_part[k] .= xf_mean
         end
 
-        xf_part[k] .= xf
+		xf_part[k] .= xf
 
         ef .= xf * (Matrix(I, np, np) .- 1 / np)
-        pf[k] .= (ef * ef') ./ (np - 1)
+		pf[k] .= (ef * ef') ./ (np - 1)
 
         # analysis step (correct forecasts with observations)          
         ivar_obs = findall(.!isnan.(yo.u[k]))
@@ -61,22 +68,24 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnEnKS; progress = t
 
         if n > 0
 
-            μ = zeros(Float64, n)
-            σ = da.R[ivar_obs, ivar_obs]
-            eps = rand(MvNormal(μ, σ), np)
+            eps = rand(rng, sampler2, np)
             yf = da.H[ivar_obs, :] * xf
 
-            SIGMA = (da.H[ivar_obs, :] * pf[k]) * da.H[ivar_obs, :]'
-            SIGMA .+= da.R[ivar_obs, ivar_obs]
-            SIGMA_INV = inv(SIGMA)
+            Σ = (da.H[ivar_obs, :] * pf[k]) * da.H[ivar_obs, :]'
+            Σ .+= da.R[ivar_obs, ivar_obs]
 
-            K = (pf[k] * da.H[ivar_obs, :]') * SIGMA_INV
+			invΣ = inv(Σ)
+			K = (pf[k] * da.H[ivar_obs, :]') * invΣ
             d = yo.u[k][ivar_obs] .- yf .+ eps
             part[k] .= xf .+ K * d
+			# compute likelihood
+			innov_ll = mean(yo.u[k][ivar_obs] .- yf, dims=2)
+            loglik = -0.5 * innov_ll'invΣ * innov_ll .- 0.5*(n*log(2π)+log(det(Σ)))
+			println(loglik)
 
         else
 
-            part[k] .= xf
+			part[k] .= copy(xf)
 
         end
 
@@ -96,8 +105,8 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnEnKS; progress = t
         if k == nt
             part[k] .= part[nt]
         else
-            m_xa_part_tmp = m_xa_part[k+1]
-            tej, m_xa_tmp = da.m(mean(part[k], dims = 2))
+			m_xa_part_tmp = m_xa_part[k+1]
+			tej, m_xa_tmp = da.m(mean(part[k], dims = 2))
             tmp1 = part[k] .- mean(part[k], dims = 2)
             tmp2 = m_xa_part_tmp .- m_xa_tmp
             Ks .= ((tmp1 * tmp2') * pinv(pf[k+1], rtol = 1e-4)) ./ (np - 1)
