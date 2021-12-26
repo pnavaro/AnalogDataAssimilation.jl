@@ -81,11 +81,10 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnEnKS; progress = t
 			# compute likelihood
 			innov_ll = mean(yo.u[k][ivar_obs] .- yf, dims=2)
             loglik = -0.5 * innov_ll'invΣ * innov_ll .- 0.5*(n*log(2π)+log(det(Σ)))
-			println(loglik)
 
         else
 
-			part[k] .= copy(xf)
+			part[k] .= xf
 
         end
 
