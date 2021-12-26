@@ -38,7 +38,7 @@ ssm = StateSpaceModel(
 u0 = [8.0; 0.0; 30.0]
 tspan = (0.0, 5.0)
 prob = ODEProblem(ssm.model, u0, tspan, parameters)
-u0 = last(solve(prob, reltol = 1e-6, save_everystep = false))
+u0 = last(solve(prob, save_everystep = false))
 
 # ## Generate data
 
@@ -51,7 +51,7 @@ scatter!(yo.t, yo[1]; markersize = 2)
 
 np = 100
 DA = DataAssimilation(ssm, xt)
-@time x̂ = forecast(DA, yo, PF(np), progress = false);
+@time x̂ = forecast(DA, yo, AnPF(np), progress = false);
 println(RMSE(xt, x̂))
 
 # ## Plot the times series

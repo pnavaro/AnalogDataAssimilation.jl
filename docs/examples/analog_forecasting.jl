@@ -48,7 +48,7 @@ af = AnalogForecasting(50, xt, catalog; regression = :local_linear, sampling = :
 
 np = 100
 DA = DataAssimilation(af, xt, ssm.sigma2_obs)
-x̂ = forecast(DA, yo, EnKS(np), progress = false);
+x̂ = forecast(DA, yo, AnEnKS(np), progress = false);
 println(RMSE(xt, x̂))
 
 # # Plot results

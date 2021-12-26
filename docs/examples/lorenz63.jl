@@ -82,7 +82,7 @@ ssm = StateSpaceModel(
 u0 = [8.0; 0.0; 30.0]
 tspan = (0.0, 5.0)
 prob = ODEProblem(ssm.model, u0, tspan, parameters)
-u0 = last(solve(prob, reltol = 1e-6, save_everystep = false))
+u0 = last(solve(prob, save_everystep = false))
 
 xt, yo, catalog = generate_data(ssm, u0);
 
@@ -96,15 +96,15 @@ sampling = :gaussian
 k, np = 100, 500
 
 DA = DataAssimilation(ssm, xt)
-x̂_classical = forecast(DA, yo, EnKS(np), progress = false)
+x̂_classical = forecast(DA, yo, AnEnKS(np), progress = false)
 @time RMSE(xt, x̂_classical)
 
 # ## Analog data assimilation
 
 f = AnalogForecasting(k, xt, catalog; regression = regression, sampling = sampling)
 DA = DataAssimilation(f, xt, ssm.sigma2_obs)
-x̂_analog = forecast(DA, yo, EnKS(np), progress = false)
-@time RMSE(xt, x̂_analog)
+@time x̂_analog = forecast(DA, yo, AnEnKS(np), progress = false)
+println(RMSE(xt, x̂_analog))
 
 # ## Comparison between classical and analog data assimilation
 
