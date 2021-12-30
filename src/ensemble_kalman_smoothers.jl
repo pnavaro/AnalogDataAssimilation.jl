@@ -79,7 +79,7 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnEnKS; progress = t
             d = yo.u[k][ivar_obs] .- yf .+ eps
             part[k] .= xf .+ K * d
 			# compute likelihood
-			innov_ll = mean(yo.u[k][ivar_obs] .- yf, dims=2)
+			innov_ll = vec(mean(yo.u[k][ivar_obs] .- yf, dims=2))
             loglik = -0.5 * innov_ll'invΣ * innov_ll .- 0.5*(n*log(2π)+log(det(Σ)))
 
         else
@@ -108,7 +108,7 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnEnKS; progress = t
 			tej, m_xa_tmp = da.m(mean(part[k], dims = 2))
             tmp1 = part[k] .- mean(part[k], dims = 2)
             tmp2 = m_xa_part_tmp .- m_xa_tmp
-            Ks .= ((tmp1 * tmp2') * pinv(pf[k+1], rtol = 1e-4)) ./ (np - 1)
+            Ks .= ((tmp1 * tmp2') * pinv(pf[k+1], rtol = 1e-6)) ./ (np - 1)
             part[k] .+= Ks * (part[k+1] .- xf_part[k+1])
         end
         x̂.u[k] .= vec(sum(part[k] ./ np, dims = 2))
