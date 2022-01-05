@@ -1,4 +1,4 @@
-# AnalogDataAssimilation.jl
+# AnalogDataAssimilation.jl [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pnavaro/AnalogDataAssimilation.jl/HEAD?labpath=lorenz63.ipynb)
 
 Julia translation of the Python code [¡AnDA!](https://github.com/ptandeo/AnDA)
 
@@ -7,7 +7,6 @@ Julia translation of the Python code [¡AnDA!](https://github.com/ptandeo/AnDA)
 | [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![][action-img]][action-url] [![][codecov-img]][codecov-url] |
 
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pnavaro/AnalogDataAssimilation.jl/HEAD?labpath=lorenz63.ipynb)
 
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
