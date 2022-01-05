@@ -2,8 +2,6 @@
 
 Julia translation of the Python code [¡AnDA!](https://github.com/ptandeo/AnDA)
 
-This is still an ongoing work, the Python version gives better results for now. There's still a big I need to find...
-
 | **Documentation**                                                               | **Build Status**                                                                                |
 |:-------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
 | [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![][action-img]][action-url] [![][codecov-img]][codecov-url] |
