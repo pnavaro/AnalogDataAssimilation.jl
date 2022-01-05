@@ -1,4 +1,6 @@
-# AnalogDataAssimilation.jl [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pnavaro/AnalogDataAssimilation.jl/HEAD?labpath=lorenz63.ipynb)
+# AnalogDataAssimilation.jl 
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pnavaro/AnalogDataAssimilation.jl/HEAD?labpath=lorenz63.ipynb)
 
 Julia translation of the Python code [¡AnDA!](https://github.com/ptandeo/AnDA)
 
