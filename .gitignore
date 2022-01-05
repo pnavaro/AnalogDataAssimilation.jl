@@ -1,3 +1,4 @@
 *.swp
 .ipynb_checkpoints/lorenz63-checkpoint.ipynb
 Manifest.toml
+.ipynb_checkpoints/lorenz96-checkpoint.ipynb
