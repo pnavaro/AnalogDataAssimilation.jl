@@ -64,6 +64,6 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/pnavaro/AnalogDataSsimilation.jl.git",
+    repo = "github.com/pnavaro/AnalogDataAssimilation.jl.git",
 	devbranch = "main"
 )
