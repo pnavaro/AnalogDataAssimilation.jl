@@ -1,6 +1,6 @@
 using Random, LinearAlgebra
 
-import DifferentialEquations: SDEProblem, solve
+import DifferentialEquations: ODEProblem, solve
 import Distributions: MvNormal, rand
 
 export generate_data
@@ -31,15 +31,7 @@ function generate_data(ssm::StateSpaceModel, u0::Vector{Float64}, seed = 42)
 
     tspan = (0.0, ssm.nb_loop_test)
 
-    function σ( du, u, p, t)
-
-        for i in eachindex(du)
-            du[i] = ssm.sigma2_obs
-        end
-
-    end
-
-    prob = SDEProblem(ssm.model, σ, u0, tspan, ssm.params)
+    prob = ODEProblem(ssm.model, u0, tspan, ssm.params)
 
     # generSate true state (xt)
     sol = solve(prob, saveat = ssm.dt_states * ssm.dt_integration)
@@ -54,7 +46,7 @@ function generate_data(ssm::StateSpaceModel, u0::Vector{Float64}, seed = 42)
     nt = length(xt.t)
 
     d = MvNormal(ssm.sigma2_obs .* Matrix(I, nv, nv))
-    ε = rand(d, nt)
+    ε = rand(rng, d, nt)
     for j = 1:step:nt
         for i in ssm.var_obs
             yo.u[j][i] = xt.u[j][i] + ε[i, j]
@@ -64,7 +56,7 @@ function generate_data(ssm::StateSpaceModel, u0::Vector{Float64}, seed = 42)
     # generate catalog
     u0 = last(sol)
     tspan = (0.0, ssm.nb_loop_train)
-    prob = SDEProblem(ssm.model, σ, u0, tspan, ssm.params)
+    prob = ODEProblem(ssm.model, u0, tspan, ssm.params)
     sol = solve(prob, saveat = ssm.dt_integration)
     n = length(sol.t)
 
