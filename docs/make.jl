@@ -1,5 +1,5 @@
 push!(LOAD_PATH, "../src/")
-ENV["GKSwstype"]="100"
+ENV["GKSwstype"] = "100"
 
 using DifferentialEquations
 using DelimitedFiles
@@ -63,7 +63,4 @@ makedocs(
     pages = pages,
 )
 
-deploydocs(
-    repo = "github.com/pnavaro/AnalogDataAssimilation.jl.git",
-	devbranch = "main"
-)
+deploydocs(repo = "github.com/pnavaro/AnalogDataAssimilation.jl.git", devbranch = "main")

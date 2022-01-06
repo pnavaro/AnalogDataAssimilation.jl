@@ -65,4 +65,3 @@ function generate_data(ssm::StateSpaceModel, u0::Vector{Float64}, seed = 42)
     xt, yo, Catalog(hcat(catalog_tmp...), ssm)
 
 end
-

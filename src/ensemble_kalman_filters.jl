@@ -47,13 +47,15 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnEnKF; progress = t
 
     for k = 1:nt
 
-        if progress next!(p) end
+        if progress
+            next!(p)
+        end
 
         # update step (compute forecasts)            
         if k == 1
             xf .= rand(MvNormal(da.xb, da.B), np)
         else
-            xf, xf_mean = da.m(part[k-1])  
+            xf, xf_mean = da.m(part[k-1])
             m_xa_part[k] .= xf_mean
         end
 
@@ -73,7 +75,7 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnEnKF; progress = t
             yf = da.H[ivar_obs, :] * xf
             Σ = (da.H[ivar_obs, :] * pf[k]) * da.H[ivar_obs, :]'
             Σ .+= da.R[ivar_obs, ivar_obs]
-			invΣ = inv(Σ)
+            invΣ = inv(Σ)
             K = (pf[k] * da.H[ivar_obs, :]') * invΣ
             d = yo.u[k][ivar_obs] .- yf .+ eps
             part[k] .= xf .+ K * d

@@ -35,14 +35,14 @@ function getindex(x::TimeSeries, i::Int)
     getindex.(x.u, i)
 end
 
-import Base:-
+import Base: -
 
-function (-)(a :: TimeSeries, b :: TimeSeries)
+function (-)(a::TimeSeries, b::TimeSeries)
 
     @assert a.nv == b.nv
     @assert all(a.t .== b.t)
 
-    TimeSeries(a.t, [a[i] - b[i] for i in 1:a.nt])
+    TimeSeries(a.t, [a[i] - b[i] for i = 1:a.nt])
 
 end
 
