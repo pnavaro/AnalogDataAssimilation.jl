@@ -14,7 +14,7 @@
 # \end{aligned}
 # ```
 #
-# with ``\\eta`` and ``\\epsilon`` some independant white
+# with ``\eta`` and ``\epsilon`` some independant white
 # Gaussian noises respectively respresenting the model forecast error
 # and the error of observation.  
 
