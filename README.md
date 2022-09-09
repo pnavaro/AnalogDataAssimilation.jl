@@ -8,9 +8,6 @@ Julia translation of the Python code [¡AnDA!](https://github.com/ptandeo/AnDA)
 |:-------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
 | [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![][action-img]][action-url] [![][codecov-img]][codecov-url] |
 
-
-
-
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: https://pnavaro.github.io/AnalogDataAssimilation.jl/dev
 
