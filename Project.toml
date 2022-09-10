@@ -16,3 +16,5 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 DifferentialEquations = "7"
+PDMats = "0.11"
+NearestNeighbors = "0.4"
