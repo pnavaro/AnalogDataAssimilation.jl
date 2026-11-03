@@ -11,3 +11,4 @@ AnalogDataAssimilation = {path = ".."}
 
 [compat]
 Plots = "1.41.7"
+SciMLBase = "3.58.0"
