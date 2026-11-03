@@ -8,3 +8,6 @@ SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 
 [sources]
 AnalogDataAssimilation = {path = ".."}
+
+[compat]
+SciMLBase = "3.58.0"
