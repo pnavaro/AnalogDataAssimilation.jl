@@ -1,7 +1,7 @@
 push!(LOAD_PATH, "../src/")
 ENV["GKSwstype"] = "100"
 
-using DifferentialEquations
+using OrdinaryDiffEq
 using DelimitedFiles
 using Documenter
 using Literate

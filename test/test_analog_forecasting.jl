@@ -1,7 +1,8 @@
 @testset " Analog forecasting " begin
 
     import AnalogDataAssimilation: normalise!, sample_discrete
-    import DifferentialEquations: ODEProblem, solve
+    import OrdinaryDiffEq
+    import SciMLBase: ODEProblem, solve
 
     n = 10
     M = rand(n, 3)

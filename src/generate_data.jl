@@ -1,6 +1,7 @@
 using Random, LinearAlgebra
 
-import DifferentialEquations: ODEProblem, solve
+import OrdinaryDiffEq
+import SciMLBase: ODEProblem, solve
 import Distributions: MvNormal, rand
 
 export generate_data

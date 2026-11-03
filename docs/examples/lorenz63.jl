@@ -38,7 +38,8 @@
 # Assimilation. *Monthly Weather Review*, 145(10), 4093-4107.  # If
 # you use this library, please do not forget to cite this work.
 
-using Plots, DifferentialEquations, AnalogDataAssimilation
+using Plots, OrdinaryDiffEq, AnalogDataAssimilation
+using SciMLBase: ODEProblem, solve
 
 # To begin, as dynamical model ``f``, we use the Lorenz-63 chaotic
 # system. First, we generate simulated trajectories from this dynamical

@@ -1,6 +1,7 @@
 @testset " Classic model forecasting " begin
 
-    import DifferentialEquations: ODEProblem, solve, Tsit5
+    import OrdinaryDiffEq: Tsit5
+    import SciMLBase: ODEProblem, solve
 
     σ = 10.0
     ρ = 28.0
