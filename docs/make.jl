@@ -8,6 +8,9 @@ using Literate
 using Plots
 using AnalogDataAssimilation
 
+# Keep documentation builds responsive; users can override this to run full experiments.
+get!(ENV, "CEDA_QUICK_DEMO", "true")
+
 # generate examples
 OUTPUT = joinpath(@__DIR__, "src", "generated")
 
@@ -18,6 +21,7 @@ push!(examples, "catalog.jl")
 push!(examples, "model_forecasting.jl")
 push!(examples, "analog_forecasting.jl")
 push!(examples, "lorenz63.jl")
+push!(examples, "covariance_estimation.jl")
 
 example_pages = Any[]
 
@@ -49,6 +53,7 @@ pages = Any[
     "Particle filters"=>"particle_filters.md",
     "Time Series"=>"time-series.md",
     "Utilities"=>"utils.md",
+    "Covariance estimation"=>"covariance-estimation.md",
     "Examples"=>example_pages,
 ]
 

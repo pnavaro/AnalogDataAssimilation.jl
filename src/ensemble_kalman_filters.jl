@@ -1,19 +1,32 @@
+using Distributions
+using LinearAlgebra
+using Random
+using Statistics
+
 export AnEnKF
 
 """
-    EnKF( np )
+    AnEnKF(np)
 
-Ensemble Kalman Filters
+Construct an ensemble Kalman filter with at least two members. `forecast`
+accepts an `rng` keyword (defaulting to Julia's task-local RNG) for reproducible
+sampling. Missing observations are represented by `NaN`; infinite observations
+are rejected.
 """
 struct AnEnKF <: MonteCarloMethod
 
     np::Int64
 
+    function AnEnKF(np::Integer)
+        np >= 2 || throw(ArgumentError("AnEnKF requires at least 2 ensemble members"))
+        new(Int64(np))
+    end
+
 end
 
 
 """ 
-    forecast( da, yo, mc; progress=true)
+    forecast(da, yo, mc; progress=true, rng=Random.default_rng())
 
 - da: DataAssimilation
 - yo: Observations
@@ -23,23 +36,20 @@ end
 Apply stochastic and sequential data assimilation technics using 
 model forecasting or analog forecasting. 
 """
-function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnEnKF; progress = true)
+function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnEnKF; progress = true, rng = Random.default_rng())
 
     # dimensions
     nt = yo.nt        # number of observations
     np = mc.np        # number of particles
     nv = yo.nv        # number of variables (dimensions of problem)
+    _validate_assimilation_inputs(da, yo, np)
 
     # initialization
     x̂ = TimeSeries(nt, nv)
 
-    m_xa_part = [zeros(Float64, (nv, np)) for i = 1:nt]
     part = [zeros(Float64, (nv, np)) for i = 1:nt]
-    pf = [zeros(Float64, (nv, nv)) for i = 1:nt]
     xf = zeros(Float64, (nv, np))
     xf_mean = similar(xf)
-    ef = similar(xf)
-    Ks = zeros(Float64, (3, 3))
 
     if progress
         p = Progress(nt)
@@ -53,16 +63,15 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnEnKF; progress = t
 
         # update step (compute forecasts)            
         if k == 1
-            xf .= rand(MvNormal(da.xb, da.B), np)
+            xf .= rand(rng, MvNormal(da.xb, da.B), np)
         else
-            xf, xf_mean = da.m(part[k-1])
-            m_xa_part[k] .= xf_mean
+            xf, xf_mean = _forecast_with_rng(da.m, part[k-1], rng)
         end
 
         part[k] .= xf
 
-        ef .= xf * (Matrix(I, np, np) .- 1 / np)
-        pf[k] .= (ef * ef') ./ (np - 1)
+        forecast_anomalies = xf .- mean(xf, dims = 2)
+        forecast_covariance = forecast_anomalies * forecast_anomalies' ./ (np - 1)
 
         # analysis step (correct forecasts with observations)          
         ivar_obs = findall(.!isnan.(yo.u[k]))
@@ -71,12 +80,13 @@ function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnEnKF; progress = t
         if n > 0
             μ = zeros(Float64, n)
             σ = da.R[ivar_obs, ivar_obs]
-            eps = rand(MvNormal(μ, σ), np)
+            eps = rand(rng, MvNormal(μ, σ), np)
             yf = da.H[ivar_obs, :] * xf
-            Σ = (da.H[ivar_obs, :] * pf[k]) * da.H[ivar_obs, :]'
-            Σ .+= da.R[ivar_obs, ivar_obs]
-            invΣ = inv(Σ)
-            K = (pf[k] * da.H[ivar_obs, :]') * invΣ
+            Σ = Symmetric(
+                (da.H[ivar_obs, :] * forecast_covariance) * da.H[ivar_obs, :]' +
+                da.R[ivar_obs, ivar_obs],
+            )
+            K = (forecast_covariance * da.H[ivar_obs, :]') / Σ
             d = yo.u[k][ivar_obs] .- yf .+ eps
             part[k] .= xf .+ K * d
             # compute likelihood
