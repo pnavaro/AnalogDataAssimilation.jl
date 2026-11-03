@@ -10,4 +10,5 @@ SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 AnalogDataAssimilation = {path = ".."}
 
 [compat]
+Literate = "2.21.0"
 SciMLBase = "3.58.0"
