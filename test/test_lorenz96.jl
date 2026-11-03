@@ -1,6 +1,7 @@
 @testset "Lorenz 96" begin
 
-    using DifferentialEquations, Random, LinearAlgebra
+    using OrdinaryDiffEq, Random, LinearAlgebra
+    import SciMLBase: ODEProblem, solve
     using AnalogDataAssimilation
 
     rng = MersenneTwister(123)

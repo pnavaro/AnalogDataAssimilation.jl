@@ -1,128 +1,92 @@
+using Distributions
+using LinearAlgebra
+using Random
+using Statistics
+
 export AnPF
 
 struct AnPF <: MonteCarloMethod
-
     np::Int64
 
+    function AnPF(np::Integer)
+        np >= 2 || throw(ArgumentError("AnPF requires at least 2 particles"))
+        new(Int64(np))
+    end
 end
 
-""" 
-    data_assimilation( yo, da, AnPF(100) )
-
-Apply particle filters data assimilation technics using 
-model forecasting or analog forecasting. 
-
 """
-function forecast(da::DataAssimilation, yo::TimeSeries, mc::AnPF; progress = true)
+    forecast(da, yo, AnPF(np); progress=true, rng=Random.default_rng())
 
-    # dimensions
-    nt = yo.nt        # number of observations
-    np = mc.np        # number of particles
-    nv = yo.nv        # number of variables (dimensions of problem)
+Run a sequential importance-resampling particle filter using `np` particles.
+`NaN` marks a missing observation; infinite observations are rejected.
+Resampled particles receive equal weights. The small Gaussian perturbation
+with covariance `da.B / 100` after each forecast is retained from the original
+AnDA implementation. Pass an explicit random number generator for
+reproducibility.
+"""
+function forecast(
+    da::DataAssimilation,
+    yo::TimeSeries,
+    mc::AnPF;
+    progress = true,
+    rng = Random.default_rng(),
+)
+    nt, np, nv = yo.nt, mc.np, yo.nv
+    _validate_assimilation_inputs(da, yo, np)
 
-    # initialization
-    x̂ = TimeSeries(nt, nv)
+    estimates = TimeSeries(nt, nv)
+    particles = rand(rng, MvNormal(da.xb, da.B), np)
+    uniform_weights = fill(1.0 / np, np)
+    progress_bar = progress ? Progress(nt) : nothing
 
-    # special case for k=1
-    k = 1
-    m_xa_traj = Array{Float64,2}[]
-    xf = rand(MvNormal(da.xb, da.B), np)
-    ivar_obs = findall(.!isnan.(yo.u[k]))
-    nobs = length(ivar_obs)
-    weights = zeros(Float64, np)
-    indic = zeros(Int64, np)
-    part = [zeros(Float64, (nv, np)) for i = 1:nt]
-
-    if nobs > 0
-
-        for ip = 1:np
-            μ = vec(da.H[ivar_obs, :] * xf[:, ip])
-            σ = Matrix(da.R[ivar_obs, ivar_obs])
-            d = MvNormal(μ, σ)
-            weights[ip] = pdf(d, yo.u[k][ivar_obs])
-        end
-        # normalization
-        weights ./= sum(weights)
-        # resampling
-        resample!(indic, weights)
-        part[k] .= xf[:, indic]
-        weights .= weights[indic] ./ sum(weights[indic])
-        x̂.u[k] .= vec(sum(part[k] .* weights', dims = 2))
-
-        # find number of iterations before new observation
-        # todo: try the findnext function
-        # findnext(.!isnan.(vcat(yo.u'...)), k+1)
-        knext = 1
-        while knext + k <= nt && all(isnan.(yo.u[k+knext]))
-            knext += 1
-        end
-
-    else
-
-        weights .= 1.0 / np # weights
-        resample!(indic, weights) # resampling
-
-    end
-
-    kcount = 1
-
-    if progress
-        p = Progress(nt)
-    end
-
-    for k = 2:nt
+    for t in 1:nt
         if progress
-            next!(p)
+            next!(progress_bar)
         end
 
-        # update step (compute forecasts) and add small Gaussian noise
-        xf, tej = da.m(part[k-1])
-        xf .+= rand(MvNormal(zeros(nv), da.B ./ 100.0), np)
-        if kcount <= length(m_xa_traj)
-            m_xa_traj[kcount] .= xf
-        else
-            push!(m_xa_traj, xf)
-        end
-        kcount += 1
-
-        # analysis step (correct forecasts with observations)
-        ivar_obs = findall(.!isnan.(yo.u[k]))
-
-        if length(ivar_obs) > 0
-            # weights
-            σ = Symmetric(da.R[ivar_obs, ivar_obs])
-            for ip = 1:np
-                μ = vec(da.H[ivar_obs, :] * xf[:, ip])
-                d = MvNormal(μ, σ)
-                weights[ip] = pdf(d, yo.u[k][ivar_obs])
-            end
-            # normalization
-            weights ./= sum(weights)
-            # resampling
-            resample!(indic, weights)
-            weights .= weights[indic] ./ sum(weights[indic])
-            # stock results
-            for j = 1:knext
-                jm = k - knext + j
-                for ip = 1:np
-                    part[jm][:, ip] .= m_xa_traj[j][:, indic[ip]]
-                end
-                x̂.u[jm] .= vec(sum(part[jm] .* weights', dims = 2))
-            end
-            kcount = 1
-            # find number of iterations  before new observation
-            knext = 1
-            while knext + k <= nt && all(isnan.(yo.u[k+knext]))
-                knext += 1
-            end
-        else
-            # stock results
-            part[k] .= xf
-            x̂.u[k] .= vec(sum(xf .* weights', dims = 2))
+        if t > 1
+            forecast_particles, _ = _forecast_with_rng(da.m, particles, rng)
+            size(forecast_particles) == (length(da.xb), np) ||
+                throw(DimensionMismatch("forecast must return a state-by-particle matrix"))
+            all(isfinite, forecast_particles) ||
+                throw(ArgumentError("forecast returned non-finite particles"))
+            forecast_particles .+= rand(
+                rng,
+                MvNormal(zeros(length(da.xb)), da.B ./ 100),
+                np,
+            )
+            particles = forecast_particles
         end
 
+        observed = findall(isfinite, yo.u[t])
+        if isempty(observed)
+            estimates.u[t] .= particles * uniform_weights
+            continue
+        end
+
+        H = da.H[observed, :]
+        R = Symmetric(da.R[observed, observed])
+        observation_noise = MvNormal(zeros(length(observed)), R)
+        logweights = Vector{Float64}(undef, np)
+        observation = yo.u[t][observed]
+        for member in 1:np
+            predicted_observation = H * @view(particles[:, member])
+            logweights[member] = logpdf(observation_noise, observation - predicted_observation)
+        end
+
+        maximum_logweight = maximum(logweights)
+        isfinite(maximum_logweight) ||
+            throw(ArgumentError("all particle observation likelihoods are zero or non-finite at time $t"))
+        weights = exp.(logweights .- maximum_logweight)
+        total_weight = sum(weights)
+        isfinite(total_weight) && total_weight > 0 ||
+            throw(ArgumentError("particle observation weights cannot be normalized at time $t"))
+        weights ./= total_weight
+
+        estimates.u[t] .= particles * weights
+        ancestors = resample!(Vector{Int64}(undef, np), weights; rng = rng)
+        particles = particles[:, ancestors]
     end
 
-    x̂
-
+    return estimates
 end

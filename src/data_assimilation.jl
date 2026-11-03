@@ -44,3 +44,27 @@ struct DataAssimilation
     end
 
 end
+
+function _validate_assimilation_inputs(da::DataAssimilation, yo::TimeSeries, np::Integer)
+    np >= 2 || throw(ArgumentError("ensemble size must be at least 2"))
+    yo.nt > 0 || throw(ArgumentError("observations must contain at least one time step"))
+    size(da.H, 2) == length(da.xb) ||
+        throw(DimensionMismatch("observation matrix state dimension must match the background state"))
+    size(da.H, 1) == yo.nv ||
+        throw(DimensionMismatch("observation variable count must match the observation matrix"))
+    size(da.R) == (yo.nv, yo.nv) ||
+        throw(DimensionMismatch("observation covariance must match the observation dimension"))
+    size(da.B) == (length(da.xb), length(da.xb)) ||
+        throw(DimensionMismatch("background covariance must match the state dimension"))
+    length(yo.u) == yo.nt ||
+        throw(DimensionMismatch("observation time series length must match nt"))
+    for (time, observation) in enumerate(yo.u)
+        length(observation) == yo.nv ||
+            throw(DimensionMismatch("observation at time $time must have length $(yo.nv)"))
+        any(isinf, observation) &&
+            throw(ArgumentError("observations may contain NaN for missing values, but not Inf"))
+    end
+    return nothing
+end
+
+_forecast_with_rng(model::AbstractForecasting, ensemble, rng) = model(ensemble)

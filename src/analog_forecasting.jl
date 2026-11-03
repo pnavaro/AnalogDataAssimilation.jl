@@ -1,4 +1,4 @@
-using NearestNeighbors, PDMats
+using NearestNeighbors, PDMats, Random
 
 export AnalogForecasting
 
@@ -62,7 +62,7 @@ end
     Apply the analog method on catalog of historical data 
     to generate forecasts. 
 """
-function (forecasting::AnalogForecasting)(x::Array{Float64,2})
+function (forecasting::AnalogForecasting)(x::Array{Float64,2}; rng = Random.default_rng())
 
     nv, np = size(x)
     xf = zeros(Float64, (nv, np))
@@ -189,7 +189,7 @@ function (forecasting::AnalogForecasting)(x::Array{Float64,2})
 
                 # random sampling from the multivariate Gaussian distribution
                 d = MvNormal(xf_mean[ivar, ip], cov_xf)
-                xf[ivar, ip] .= rand!(d, xf[ivar, ip])
+                xf[ivar, ip] .= rand!(rng, d, xf[ivar, ip])
 
                 # Multinomial sampling
             elseif forecasting.sampling == :multinomial
@@ -198,13 +198,10 @@ function (forecasting::AnalogForecasting)(x::Array{Float64,2})
                 # of the weights
                 # this speedup is due to Peter Acklam
                 cumprob = cumsum(weights[ip])
-                R = rand()
-                M = 1::Int64
+                R = rand(rng)
                 N = length(cumprob)
-                for i = 1:N-1
-                    M += R > cumprob[i]
-                end
-                igood = M
+                cumprob[end] = 1.0
+                igood = min(searchsortedlast(cumprob, R) + 1, N)
                 xf[ivar, ip] .= xf_tmp[ivar, igood]
 
             else
@@ -226,3 +223,6 @@ function (forecasting::AnalogForecasting)(x::Array{Float64,2})
     xf, xf_mean
 
 end
+
+_forecast_with_rng(forecasting::AnalogForecasting, ensemble, rng) =
+    forecasting(ensemble; rng = rng)

@@ -1,6 +1,7 @@
 # # Analog forecasting
 
-using Plots, DifferentialEquations, AnalogDataAssimilation
+using Plots, OrdinaryDiffEq, AnalogDataAssimilation
+using SciMLBase: ODEProblem, solve
 
 
 σ = 10.0

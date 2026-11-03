@@ -4,7 +4,8 @@
 # ## Set the State-Space model
 using Plots
 using AnalogDataAssimilation
-using DifferentialEquations
+using OrdinaryDiffEq
+using SciMLBase: ODEProblem, solve
 
 σ = 10.0
 ρ = 28.0

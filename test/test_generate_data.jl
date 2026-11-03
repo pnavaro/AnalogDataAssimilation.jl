@@ -1,6 +1,7 @@
 @testset " Generate data for Lorenz-63 model " begin
 
-    import DifferentialEquations: ODEProblem, solve
+    import OrdinaryDiffEq
+    import SciMLBase: ODEProblem, solve
 
     σ = 10.0
     ρ = 28.0

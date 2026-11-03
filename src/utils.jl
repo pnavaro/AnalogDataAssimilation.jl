@@ -1,4 +1,5 @@
 using Statistics, LinearAlgebra
+using Random
 
 """
     sqrt_svd(A)  
@@ -109,22 +110,11 @@ end
 
 Multinomial resampler. 
 """
-function resample_multinomial(w::Vector{Float64})
+function resample_multinomial(w::Vector{Float64}; rng = Random.default_rng())
 
     m = length(w)
-    q = cumsum(w)
-    q[end] = 1.0 # Just in case...
-    i = 1
-    indx = Int64[]
-    while i <= m
-        sampl = rand()
-        j = 1
-        while q[j] < sampl
-            j = j + 1
-        end
-        push!(indx, j)
-        i = i + 1
-    end
+    indx = Vector{Int64}(undef, m)
+    resample!(indx, w; rng = rng)
     indx
 end
 
@@ -133,20 +123,22 @@ end
 
 Multinomial resampler.
 """
-function resample!(indx::Vector{Int64}, w::Vector{Float64})
+function resample!(indx::Vector{Int64}, w::Vector{Float64}; rng = Random.default_rng())
+    !isempty(w) || throw(ArgumentError("resampling requires at least one weight"))
+    all(isfinite, w) || throw(ArgumentError("resampling weights must be finite"))
+    all(weight -> weight >= 0.0, w) ||
+        throw(ArgumentError("resampling weights must be nonnegative"))
+    total = sum(w)
+    isfinite(total) && total > 0 ||
+        throw(ArgumentError("resampling weights must have a finite positive sum"))
 
-    m = length(w)
-    q = cumsum(w)
-    i = 1
-    while i <= m
-        sampl = rand()
-        j = 1
-        while q[j] < sampl
-            j = j + 1
-        end
-        indx[i] = j
-        i = i + 1
+    q = cumsum(w ./ total)
+    q[end] = 1.0
+    for i in eachindex(indx)
+        sample = rand(rng)
+        indx[i] = min(searchsortedlast(q, sample) + 1, length(q))
     end
+    return indx
 end
 
 """

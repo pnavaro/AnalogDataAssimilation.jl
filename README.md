@@ -4,6 +4,9 @@
 
 Julia translation of the Python code [¡AnDA!](https://github.com/ptandeo/AnDA)
 
+This package also provides [¡CEDA!](https://github.com/ptandeo/CEDA) a library for the covariance estimation with EM and extended
+or ensemble Kalman smoothing; see the [documentation](https://pnavaro.github.io/AnalogDataAssimilation.jl/dev/covariance-estimation/).
+
 | **Documentation**                                                               | **Build Status**                                                                                |
 |:-------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
 | [![][docs-dev-img]][docs-dev-url] | [![][action-img]][action-url] [![][codecov-img]][codecov-url] |
