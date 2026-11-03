@@ -11,5 +11,6 @@ AnalogDataAssimilation = {path = ".."}
 
 [compat]
 Documenter = "1.19.0"
+Literate = "2.21.0"
 OrdinaryDiffEq = "7.8.1"
 SciMLBase = "3.58.0"
