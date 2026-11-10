@@ -35,7 +35,7 @@ ssm = StateSpaceModel(
 u0 = [8.0; 0.0; 30.0]
 tspan = (0.0, 5.0)
 prob = ODEProblem(ssm.model, u0, tspan, ssm.params)
-u0 = last(solve(prob, reltol = 1e-6, save_everystep = false))
+u0 = last(solve(prob, reltol = 1e-6, save_everystep = false).u)
 
 # # Generate the data
 

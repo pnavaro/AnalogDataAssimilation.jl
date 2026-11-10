@@ -35,7 +35,7 @@
     u0 = [8.0; 0.0; 30.0]
     tspan = (0.0, 5.0)
     prob = ODEProblem(ssm.model, u0, tspan, params)
-    u0 = last(solve(prob, reltol = 1e-6, save_everystep = false))
+    u0 = last(solve(prob, reltol = 1e-6, save_everystep = false).u)
 
     xt, yo, catalog = generate_data(ssm, u0)
 
@@ -43,4 +43,27 @@
 
     @test true
 
+end
+
+@testset "Generated ODE state and catalog continuity" begin
+    linear_model(u, p, t) = p .* u
+    for nv in (1, 3)
+        rates = fill(-0.2, nv)
+        ssm = StateSpaceModel(
+            linear_model, 0.1, 1, 2, rates, collect(1:nv), 1, 1, 0.0, 0.1,
+        )
+        initial = collect(1.0:nv)
+        sol = solve(ODEProblem(linear_model, initial, (0.0, 0.2), rates))
+        u0 = last(sol.u)
+        @test u0 isa Vector{Float64}
+        @test length(u0) == nv
+        xt, yo, catalog = generate_data(ssm, u0)
+        @test all(u -> u isa Vector{Float64} && length(u) == nv, xt.u)
+        @test all(u -> length(u) == nv, yo.u)
+        @test catalog.nv == nv
+        @test catalog.data[:, 1] ≈ last(xt.u)
+        @test last(xt.u) ≈ u0 .* exp.(rates .* ssm.nb_loop_test) rtol = 1e-4
+        @test catalog.data[:, end] ≈
+              last(xt.u) .* exp.(rates .* ssm.nb_loop_train) rtol = 1e-4
+    end
 end

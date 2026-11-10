@@ -35,7 +35,7 @@
     u0 = [8.0; 0.0; 30.0]
     tspan = (0.0, 5.0)
     prob = ODEProblem(lorenz63, u0, tspan, parameters)
-    u0 = last(solve(prob, Tsit5(), reltol = 1e-6, save_everystep = false))
+    u0 = last(solve(prob, Tsit5(), reltol = 1e-6, save_everystep = false).u)
 
     xt, yo, catalog = generate_data(ssm, u0)
 
@@ -49,4 +49,20 @@
 
     @test rmse < 1.0
 
+end
+
+@testset "ODE ensemble forecast state shape" begin
+    linear_model(u, p, t) = p .* u
+    for nv in (1, 3)
+        rates = -0.2 .* collect(1:nv)
+        ssm = StateSpaceModel(
+            linear_model, 0.1, 1, 2, rates, collect(1:nv), 1, 1, 0.0, 0.1,
+        )
+        states = reshape(collect(1.0:3nv), nv, 3)
+        expected = states .* exp.(rates .* ssm.dt_integration)
+        forecast_states, forecast_mean = ssm(states)
+        @test size(forecast_states) == size(states)
+        @test forecast_states ≈ expected rtol = 1e-6
+        @test forecast_mean ≈ expected rtol = 1e-6
+    end
 end

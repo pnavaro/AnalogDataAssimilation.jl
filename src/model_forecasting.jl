@@ -19,13 +19,14 @@ function (ssm::StateSpaceModel)(x::Array{Float64,2})
     function prob_func(prob, i, repeat)
         remake(prob, u0 = vec(x[:, i]))
     end
+    prob_func(prob, ctx) = remake(prob, u0 = vec(x[:, ctx.sim_id]))
 
     monte_prob = EnsembleProblem(prob, prob_func = prob_func)
 
     sim = solve(monte_prob, Tsit5(); trajectories = np, save_everystep = false)
 
     for i = 1:np
-        xf[:, i] .= last(sim[i].u)
+        xf[:, i] .= last(sim.u[i].u)
     end
 
     xf, xf
