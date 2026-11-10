@@ -25,7 +25,7 @@ function (ssm::StateSpaceModel)(x::Array{Float64,2})
     sim = solve(monte_prob, Tsit5(); trajectories = np, save_everystep = false)
 
     for i = 1:np
-        xf[:, i] .= last(sim[i].u)
+	    xf[:, i] .= last(sim.u[i])
     end
 
     xf, xf
