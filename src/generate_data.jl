@@ -55,7 +55,7 @@ function generate_data(ssm::StateSpaceModel, u0::Vector{Float64}, seed = 42)
     end
 
     # generate catalog
-    u0 = last(sol)
+    u0 = last(sol.u)
     tspan = (0.0, ssm.nb_loop_train)
     prob = ODEProblem(ssm.model, u0, tspan, ssm.params)
     sol = solve(prob, saveat = ssm.dt_integration)
