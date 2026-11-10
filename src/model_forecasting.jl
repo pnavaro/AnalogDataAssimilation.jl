@@ -19,6 +19,7 @@ function (ssm::StateSpaceModel)(x::Array{Float64,2})
     function prob_func(prob, i, repeat)
         remake(prob, u0 = vec(x[:, i]))
     end
+    prob_func(prob, ctx) = remake(prob, u0 = vec(x[:, ctx.sim_id]))
 
     monte_prob = EnsembleProblem(prob, prob_func = prob_func)
 
