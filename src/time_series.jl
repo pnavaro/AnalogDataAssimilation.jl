@@ -2,6 +2,25 @@ abstract type AbstractTimeSeries end
 
 export TimeSeries
 
+"""
+    TimeSeries(nt::Integer, nv::Integer)
+    TimeSeries(time::Vector{Float64}, values::Vector{Vector{Float64}})
+
+A sequence of multivariate states or observations sampled at times `t`.
+
+Fields:
+- `nt`: number of time steps.
+- `nv`: number of variables at each time step.
+- `t`: vector of sample times, with one entry per time step.
+- `u`: vector of state/observation vectors, with one `nv`-element vector per time step.
+
+The time-major orientation is `u[k][i]`: variable `i` at time step `k`.
+For example, `u[1]` is the first state and `u[k][i]` is its `i`th component.
+Missing observation components can be represented by `NaN`; assimilation
+algorithms in this package treat `NaN` entries as unobserved values.
+
+The dimension-based constructor initializes all times and values to zero.
+"""
 struct TimeSeries <: AbstractTimeSeries
 
     nt::Integer
